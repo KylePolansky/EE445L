@@ -26,6 +26,7 @@
 // bottom of X-ohm potentiometer connected to ground
 // top of X-ohm potentiometer connected to +3.3V 
 #include <stdint.h>
+#include <stdlib.h>
 #include "ADCSWTrigger.h"
 #include "../inc/tm4c123gh6pm.h"
 #include "PLL.h"
@@ -75,11 +76,10 @@ void Timer0A_Handler(void){
 	ADC_val[i] = ADCvalue;
 	ADC_time[i] = TIMER1_TAR_R;
 	i++;
-  PF2 ^= 0x04;                   // profile
 }
 int main(void){
 	int x = 0;
-	uint32_t small_diff = 0;
+	uint32_t small_diff = 4294967295; //32bit max uint.
 	uint32_t large_diff = 0;
 	uint32_t diff;
 	int jitter;	
@@ -98,12 +98,14 @@ int main(void){
   PF2 = 0;                      // turn off LED
   EnableInterrupts();
 	while (i < 1000) {
+		GPIO_PORTF_DATA_R ^= 0x02;
+		PF1 = (PF1*12345678)/1234567+0x02;  // this line causes jitter
 		//do something
 	}
 	DisableInterrupts();
 	
-	for (x = 0; x <=999; x++) {
-			diff = ADC_time[x] - ADC_time[x+1];
+	for (x = 0; x <999; x++) {
+			diff = abs(ADC_time[x] - ADC_time[x+1]);
 			if ( diff < small_diff)
 				small_diff = diff;
 			else if(diff>large_diff)
@@ -113,8 +115,8 @@ int main(void){
 	jitter = large_diff - small_diff;
 	jitter = jitter+1;
   while(1){
-    PF1 ^= 0x02;  // toggles when running in main
-		//if(i>1000) break;
+		GPIO_PORTF_DATA_R ^= 0x02;
+    //PF1 ^= 0x02;  // toggles when running in main
   }
 }
 
