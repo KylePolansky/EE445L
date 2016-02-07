@@ -114,6 +114,8 @@ int main(void){
 	}
 	jitter = large_diff - small_diff;
 	jitter = jitter+1;
+	
+	Plot_PMF();
   while(1){
 		GPIO_PORTF_DATA_R ^= 0x02;
     //PF1 ^= 0x02;  // toggles when running in main
@@ -138,3 +140,5 @@ void Timer1_Init(void){
   //NVIC_EN0_R = 1<<21;           // 9) enable IRQ 21 in NVIC
   TIMER1_CTL_R = 0x00000001;    // 10) enable TIMER1A
 }
+
+void Plot_PMF(void){}
