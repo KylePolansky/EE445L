@@ -1,1 +1,9 @@
 *.o
+*.d
+*.html
+*.htm
+*.uvopt
+*.bak
+*.crf
+*.Reed\ Cozart
+*.Kyle\ Polansky
