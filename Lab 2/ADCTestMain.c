@@ -117,6 +117,8 @@ int main(void){
   while(1){
 		GPIO_PORTF_DATA_R ^= 0x02;
     //PF1 ^= 0x02;  // toggles when running in main
+		//hello kyle!
+		//hello again!
   }
 }
 
