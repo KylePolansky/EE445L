@@ -27,10 +27,12 @@
 // top of X-ohm potentiometer connected to +3.3V 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "ADCSWTrigger.h"
 #include "../inc/tm4c123gh6pm.h"
 #include "PLL.h"
 #include "Timer1.h"
+#include "ST7735.h"
 
 #define PF2             (*((volatile uint32_t *)0x40025010))
 #define PF1             (*((volatile uint32_t *)0x40025008))
@@ -39,6 +41,7 @@ void EnableInterrupts(void);  // Enable interrupts
 long StartCritical (void);    // previous I bit, disable interrupts
 void EndCritical(long sr);    // restore I bit to previous value
 void WaitForInterrupt(void);  // low power mode
+void Plot_PMF(void); 					//plot the PMF on ST7735
 
 volatile uint32_t ADCvalue;
 
@@ -85,6 +88,7 @@ int main(void){
 	int jitter;	
 	
   PLL_Init(Bus80MHz);                   // 80 MHz
+	//ST7735_InitR(INITR_REDTAB);
   SYSCTL_RCGCGPIO_R |= 0x20;            // activate port F
   ADC0_InitSWTriggerSeq3_Ch9();         // allow time to finish activating
   Timer0A_Init100HzInt();               // set up Timer0A for 100 Hz interrupts
@@ -141,4 +145,38 @@ void Timer1_Init(void){
   TIMER1_CTL_R = 0x00000001;    // 10) enable TIMER1A
 }
 
-void Plot_PMF(void){}
+void Plot_PMF(void){
+	uint16_t j;
+	uint16_t min_adc_val = 0;
+	uint16_t max_adc_val = 0;
+	uint16_t max_occurences = 0;
+	int range = 0;
+	
+
+	ST7735_FillScreen(0);
+	
+	for(j=0; j<4096; j++){ //find the max occurences of any adc val
+		if(ADC_freq[j] > max_occurences)
+			max_occurences = ADC_freq[j];
+	}
+	for(j=0; j<4096; j++){ //find the min adc value
+		if(ADC_freq[j] != 0){
+			min_adc_val = j;
+			break;
+		}
+	}
+	for(j=4095; j>0; j--){ //find the max adc value
+		if(ADC_freq[j] != 0){
+			max_adc_val = j;
+			break;
+		}
+	}
+	range = max_adc_val - min_adc_val;
+	if(range<0)
+		printf("ERROR: ADC RANGE ERROR");
+	
+	
+	while(j<4096){
+		//plot pixel
+	}
+}
