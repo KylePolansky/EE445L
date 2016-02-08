@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include "ADCSWTrigger.h"
 #include "../inc/tm4c123gh6pm.h"
+#include "ST7735.h"
 #include "PLL.h"
 #include "Timer1.h"
 
@@ -106,11 +107,13 @@ int main(void){
 	uint32_t diff;
 	int jitter;	
 	
+	
   PLL_Init(Bus80MHz);                   // 80 MHz
   SYSCTL_RCGCGPIO_R |= 0x20;            // activate port F
   ADC0_InitSWTriggerSeq3_Ch9();         // allow time to finish activating
   Timer0A_Init100HzInt();               // set up Timer0A for 100 Hz interrupts
 	Timer1_Init();
+	ST7735_InitR(INITR_REDTAB);
 	Timer2_Init100Hz();
   GPIO_PORTF_DIR_R |= 0x06;             // make PF2, PF1 out (built-in LED)
   GPIO_PORTF_AFSEL_R &= ~0x06;          // disable alt funct on PF2, PF1
@@ -140,8 +143,8 @@ int main(void){
 	
 	Plot_PMF();
   while(1){
-		GPIO_PORTF_DATA_R ^= 0x02;
-    //PF1 ^= 0x02;  // toggles when running in main
+		//GPIO_PORTF_DATA_R ^= 0x02;
+    PF1 ^= 0x02;  // toggles when running in main
 		//hello kyle!
 		//hello again!
   }
@@ -164,4 +167,28 @@ void Timer1_Init(void){
   TIMER1_CTL_R = 0x00000001;    // 10) enable TIMER1A
 }
 
-void Plot_PMF(void){}
+void Plot_PMF(void){
+	int lowestval = 0; 
+	int highestval = 4096;
+	int mostfrequent = 0;
+	int x = 0;
+	int i = 0;
+	for (x = 0; x < 4096; x++) {
+		if (ADC_freq[x] != 0) {
+			highestval = x;
+			if (lowestval == 0) {
+				lowestval = x;
+			}
+			if (ADC_freq[x] > mostfrequent) {
+				mostfrequent = ADC_freq[x];
+			}
+		}
+		
+	}
+	
+	//ST7735_PlotClear(0, 1023);
+	ST7735_FillScreen(0);
+	for(x=lowestval; x<highestval; x++){
+		ST7735_DrawFastVLine(ST7735_TFTWIDTH*(x-lowestval)/(highestval-lowestval),ADC_freq[x], 160 , ST7735_WHITE);
+	}
+}
